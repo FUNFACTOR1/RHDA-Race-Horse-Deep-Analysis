@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RHDA - Race Horse Deep Analysis</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>RHDA - Race Horse Deep Analysis</h1>
+            <p class="subtitle">Analisi Approfondita per Cavalli da Corsa</p>
+        </header>
+
+        <main>
+            <section id="upload-section" class="card">
+                <h2>1. Carica Media del Cavallo</h2>
+                <div class="upload-controls">
+                    <input type="file" id="image-upload-input" accept="image/*" style="display: none;">
+                    <label for="image-upload-input" class="button upload-button">Carica Immagine</label>
+                    
+                    <input type="file" id="video-upload-input" accept="image/png, image/jpeg" multiple style="display: none;">
+                    <label for="video-upload-input" class="button upload-button">Carica Sequenza Frame</label> 
+                </div>
+                <p id="file-name-display" class="file-info">Nessun file immagine selezionato</p>
+                <p id="video-file-name-display" class="file-info">Nessuna sequenza di frame selezionata</p> 
+                <button id="start-video-analysis-button" class="button" style="display:none; margin-top: 10px;">Avvia Analisi Sequenza</button> 
+            </section>
+
+            <section id="image-quality-info" class="card">
+                <h2>Consigli per la Qualità dell'Immagine/Video</h2>
+                <p>Per risultati ottimali, assicurati che il cavallo sia ben visibile, laterale, e su uno sfondo relativamente pulito. L'immagine/video non dovrebbe essere eccessivamente compressa.</p>
+                <p>Per la sequenza di frame (video): carica frame singoli (es. PNG, JPG) di una breve sequenza (max 30-60 frame consigliati per test rapidi).</p>
+            </section>
+
+            <section id="video-processing-section" class="card" style="display:none;">
+                <h2>Elaborazione Sequenza Frame</h2> 
+                <div id="status-message-video" class="status status-idle">In attesa di caricamento sequenza...</div>
+                
+                <div id="video-analysis-results-section" style="display:none;">
+                    <h3>Risultato Analisi Sequenza Frame</h3>
+                    <div id="video-task-final-status-message" class="status" style="display:none;"></div>
+
+                    <div id="video-player-wrapper" style="position: relative; width: 100%; max-width: 720px; margin: 20px auto; background-color: #000;">
+                        <video id="analyzed-video-player" controls style="width: 100%; display: block;"></video>
+                        <canvas id="video-keypoints-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
+                    </div>
+                    <h4>Dati Keypoint del Video (Frame Corrente)</h4>
+                    <pre id="video-keypoints-json-output" class="json-output-box">Nessun dato keypoint video disponibile.</pre>
+
+                    <div id="advanced-video-biomechanics-container" class="card" style="display:none; margin-top: 30px;">
+                        <h2>Analisi Biomeccanica Avanzata (Video)</h2>
+                        
+                        <div class="metric-group">
+                            <h4>Parametri Temporo-Spaziali (Media)</h4>
+                            <ul id="video-adv-temporo-spaziali-list" class="results-list">
+                                <li>Nessun dato calcolato.</li>
+                            </ul>
+                        </div>
+
+                        <div class="metric-group">
+                            <h4>Range of Motion Articolari (Media ROM °)</h4>
+                            <ul id="video-adv-rom-articolari-list" class="results-list">
+                                <li>Nessun dato calcolato.</li>
+                            </ul>
+                        </div>
+
+                        <div class="metric-group">
+                            <h4>Indici di Simmetria (%)</h4>
+                            <ul id="video-adv-simmetria-list" class="results-list">
+                                <li>Nessun dato calcolato.</li>
+                            </ul>
+                        </div>
+
+                        <div class="metric-group">
+                            <h4>Indice Efficienza Biomeccanica Scheletrica</h4>
+                            <p id="video-adv-efficienza-scheletrica" class="efficiency-metric">N/D</p>
+                        </div>
+                        
+                        <div class="metric-group">
+                            <h4>Avvisi dall'Analisi Video</h4>
+                            <ul id="video-adv-avvisi-list" class="results-list alerts-list">
+                                <li>Nessun avviso.</li>
+                            </ul>
+                        </div>
+
+                        <div class="json-outputs-container" style="margin-top: 20px;">
+                            <div class="json-output-group">
+                                <h3>JSON Dati Biomeccanici Avanzati (Video)</h3>
+                                <pre id="video-advanced-biomechanics-json-output" class="json-output-box">Nessun dato disponibile.</pre>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+            </section>
+
+            <section id="horse-selection-section" class="card" style="display:none;">
+                <h2>2. Seleziona Cavallo (da Immagine Singola)</h2>
+                <div id="status-message-preprocessing" class="status status-idle"></div>
+                <div id="processed-horses-container" class="horses-grid">
+                    <p class="placeholder">Nessun cavallo rilevato.</p>
+                </div>
+            </section>
+
+            <section id="analysis-setup" class="card">
+                <h2>Impostazioni Analisi (Visualizzazione)</h2>
+                <div class="slider-container">
+                    <label for="likelihood-threshold-slider">Soglia di Confidenza Keypoint: <span id="likelihood-threshold-value">0.20</span></label>
+                    <input type="range" id="likelihood-threshold-slider" min="0.05" max="1.0" step="0.01" value="0.20">
+                </div>
+            </section>
+            
+            <section id="analysis-results-section" class="card" style="display:none;">
+                <h2>3. Risultati Analisi Immagine Singola</h2>
+                <div id="status-message-analysis" class="status status-idle"></div>
+                <div class="analysis-output"> <div id="final-horse-image-container" class="image-preview-container">
+                        <p class="placeholder">L'immagine annotata apparirà qui.</p>
+                    </div>
+                    <div class="metrics-container">
+                        <div class="metric-group">
+                            <h3>Angoli Articolari (Gradi)</h3>
+                            <ul id="angles-results-list" class="results-list"></ul>
+                        </div>
+                        <div class="metric-group">
+                            <h3>Distanze Segmenti (Unità Pixel)</h3>
+                            <ul id="distances-results-list" class="results-list"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="json-outputs-container">
+                    <div class="json-output-group">
+                        <h3>Keypoints JSON (da MS2 - Immagine)</h3>
+                        <pre id="keypoints-json-output" class="json-output-box">Nessun dato disponibile.</pre>
+                    </div>
+                    <div class="json-output-group">
+                        <h3>Risultati Biomeccanici JSON (da MS3 - Immagine)</h3>
+                        <pre id="biomechanics-json-output" class="json-output-box">Nessun dato disponibile.</pre>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 RHDA - Race Horse Deep Analysis. Sviluppato da Zampier Zago. Tutti i diritti riservati.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
